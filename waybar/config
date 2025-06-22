@@ -1,0 +1,64 @@
+{
+  "layer": "top",
+  "position": "top",
+  "modules-left": ["niri/workspaces","hyprland/workspaces"],
+  "modules-center": ["clock"],
+  "modules-right": ["pulseaudio", "custom/audio-selector", "network", "battery", "tray", "custom/power"],
+
+
+"niri/workspaces": {
+	"format": "{icon}",
+	"format-icons": {
+		"active": "",
+		"default": ""
+	}
+},
+  "hyprland/workspaces": {
+    // "format": "{icon} {name}",
+    "format": "",
+      "format-icons": {
+      "active": "",
+      "default": ""
+      },
+      "on-scroll-up": "hyprctl dispatch workspace e-1",
+      "on-scroll-down": "hyprctl dispatch workspace e+1",
+      "on-click": "activate"
+  },
+
+  "clock": {
+    "format": "{:%H:%M}",
+    "tooltip-format": "{:%A, %d %B %Y}"
+  },
+
+  "pulseaudio": {
+    "format": "{volume}%  ",
+    "format-bluetooth": "{volume}%  ",
+    "on-click": "pavucontrol",
+    "tooltip": false
+  },
+
+
+  "network": {
+    "format-wifi": " ",
+    "format-ethernet": "󰈀"
+  },
+
+  "battery": {
+    "format": "{capacity}% {icon}",
+    "format-icons": ["", "", "", "", ""]
+  },
+
+  "tray": {
+    "icon-size": 15,
+    "spacing": 15,
+  },
+
+  "custom/power": {
+    "format": "{}",
+    // "exec": "~/.scripts/tools/expand power",
+    "exec": "echo '{\"text\":\"⏻\",\"tooltip\":\"Power\"}'",
+    "return-type": "json",
+    "on-click": "~/.config/waybar/scripts/wlogout/launch.sh"
+  }
+}
+
