@@ -55,7 +55,7 @@
     settings = {
       default_session = {
         command = "${pkgs.greetd.tuigreet}/bin/tuigreet --cmd niri-session";
-        user ="username"; # ← remplace par ton nom d'utilisateur
+        user = "deimos"; # ← remplace par ton nom d'utilisateur
       };
     };
   };
@@ -94,9 +94,10 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.username= {
+  users.users.deimos = {
     isNormalUser = true;
-    description = "";
+    description = "Deimos";
+    shell = pkgs.zsh;
     extraGroups = [ "networkmanager" "wheel" "docker" ];
     packages = with pkgs; [
     #  thunderbird
@@ -116,7 +117,7 @@
   };
 
   programs.virt-manager.enable = true;
-  users.groups.libvirtd.members = ["username"];
+  users.groups.libvirtd.members = ["deimos"];
   virtualisation.libvirtd.enable = true;
   virtualisation.spiceUSBRedirection.enable = true;
 
@@ -125,12 +126,16 @@
   programs.hyprland = {
     enable = true;
   };
+
+  programs.zsh.enable = true;
   
   programs.hyprlock.enable = true;
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  environment.shells = with pkgs; [ zsh ];
+
   
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
