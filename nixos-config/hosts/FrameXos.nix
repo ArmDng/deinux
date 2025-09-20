@@ -3,7 +3,9 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
 { config, pkgs, ... }:
+
 {
+
   imports =
     [ # Include the results of the hardware scan.     
       ./hardware-configuration.nix
@@ -55,7 +57,7 @@
     settings = {
       default_session = {
         command = "${pkgs.greetd.tuigreet}/bin/tuigreet --cmd niri-session";
-        user = ""; # ← remplace par ton nom d'utilisateur
+        user = "deimos"; # ← remplace par ton nom d'utilisateur
       };
     };
   };
@@ -96,7 +98,7 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.deimos = {
     isNormalUser = true;
-    description = "";
+    description = "Deimos";
     shell = pkgs.zsh;
     extraGroups = [ "networkmanager" "wheel" "docker" ];
     packages = with pkgs; [
@@ -114,6 +116,7 @@
     "de.haeckerfelix.Fragments"
     "com.obsproject.Studio"
     "com.google.Chrome"
+    "com.github.johnfactotum.Foliate"
   ];
 
   # Install firefox.
@@ -127,7 +130,7 @@
   };
 
   programs.virt-manager.enable = true;
-  users.groups.libvirtd.members = ["YourUser"];
+  users.groups.libvirtd.members = ["deimos"];
   virtualisation.libvirtd.enable = true;
   virtualisation.spiceUSBRedirection.enable = true;
 
@@ -140,8 +143,9 @@
   programs.zsh.enable = true;
   
   programs.hyprlock.enable = true;
-  environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
+  services.fwupd.enable = true;
+  
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   environment.shells = with pkgs; [ zsh ];
@@ -150,14 +154,22 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+    QT_QPA_PLATFORM = "wayland";
+    MOZ_ENABLE_WAYLAND = "1";
+    QT_SCALE_FACTOR_ROUNDING_POLICY = "RoundPreferFloor";
+  };
+
   fonts.packages = builtins.filter pkgs.lib.attrsets.isDerivation (builtins.attrValues pkgs.nerd-fonts);
 
+  # ... other stuff
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
+  wget
   vscode
   helix
   ghostty
@@ -165,7 +177,6 @@
   neofetch
   gnome-tweaks
   protonvpn-gui
-  git-credential-manager
   pass
   unityhub
   gnupg
@@ -204,8 +215,20 @@
   xwayland-satellite
 
   mpv-unwrapped
+  kdePackages.kdenlive
   pdftk
   libreoffice-qt6-fresh
+  playerctl
+  mpc
+  jq
+  maim
+  simple-mtpfs
+  ffmpeg
+  fusePackages.fuse_2
+  wmctrl
+  xclip
+  xorg.xeyes
+  go  
   ];
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
