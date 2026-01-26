@@ -2,21 +2,23 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, lib, ... }:
 
 {
-
   imports =
-    [ # Include the results of the hardware scan.     
+    [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      
     ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "FrameXos"; # Define your hostname.
+  # Use latest kernel.
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+
+  networking.hostName = ""; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -48,26 +50,29 @@
   services.xserver.enable = true;
 
   # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
-  #
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
+
+  users.users.greeter = {
+    isSystemUser = true;
+    group = "greeter";
+  };
+
 
   services.greetd = {
     enable = true;
     settings = {
       default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --cmd niri-session";
-        user = "deimos"; # ← remplace par ton nom d'utilisateur
+        command = "${pkgs.tuigreet}/bin/tuigreet --cmd niri-session";
+        user = "greeter"; 
       };
     };
   };
 
-
-
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "fr";
-    variant = "";
+    variant = "azerty";
   };
 
   # Configure console keymap
@@ -85,7 +90,7 @@
     alsa.support32Bit = true;
     pulse.enable = true;
     # If you want to use JACK applications, uncomment this
-    jack.enable = true;
+    #jack.enable = true;
 
     # use the example session manager (no others are packaged yet so this is enabled by default,
     # no need to redefine it in your config for now)
@@ -96,60 +101,35 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.deimos = {
+  users.users.yourUser = {
     isNormalUser = true;
-    description = "Deimos";
-    shell = pkgs.zsh;
-    extraGroups = [ "networkmanager" "wheel" "docker" ];
-    packages = with pkgs; [
-    #  thunderbird
+    description = "yourUser";
+    extraGroups = [ "networkmanager" "wheel" "docker"];
+    packages = [
+    
     ];
   };
 
-  services.flatpak.enable = true;
+  services.gnome.at-spi2-core.enable = lib.mkForce false;
 
+  users.defaultUserShell = if pkgs.zsh != null then pkgs.zsh else pkgs.bash;
 
-  services.flatpak.packages = [
-    "com.discordapp.Discord"
-    "app.zen_browser.zen"
-    "cafe.avery.Delfin"
-    "de.haeckerfelix.Fragments"
-    "com.obsproject.Studio"
-    "com.google.Chrome"
-    "com.github.johnfactotum.Foliate"
-  ];
 
   # Install firefox.
   programs.firefox.enable = true;
-
-  programs.git.enable = true;
-  services.pcscd.enable = true;
-  programs.gnupg.agent = {
-     enable = true;
-     enableSSHSupport = true;
-  };
-
-  programs.virt-manager.enable = true;
-  users.groups.libvirtd.members = ["deimos"];
-  virtualisation.libvirtd.enable = true;
-  virtualisation.spiceUSBRedirection.enable = true;
-
-  virtualisation.docker.enable = true;
-
-  programs.hyprland = {
-    enable = true;
-  };
-
   programs.zsh.enable = true;
   
-  programs.hyprlock.enable = true;
-
+  services.flatpak.enable = true;
+  
+  services.flatpak.packages = [ "com.discordapp.Discord" "app.zen_browser.zen" "cafe.avery.Delfin" "de.haeckerfelix.Fragments" "com.obsproject.Studio" "com.github.johnfactotum.Foliate" "com.freerdp.FreeRDP" "com.google.Chrome"];  
+  
+  users.groups.libvirtd.members = ["yourUser"];
+  
   services.fwupd.enable = true;
   
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   environment.shells = with pkgs; [ zsh ];
-
   
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -159,90 +139,61 @@
     QT_QPA_PLATFORM = "wayland";
     MOZ_ENABLE_WAYLAND = "1";
     QT_SCALE_FACTOR_ROUNDING_POLICY = "RoundPreferFloor";
+    NO_AT_BRIDGE = "1";
+    GTK_A11Y = "none";
   };
 
+   environment.variables = {
+    NO_AT_BRIDGE = "1";
+  };
+  
+  fonts.fontconfig.enable = true;
   fonts.packages = builtins.filter pkgs.lib.attrsets.isDerivation (builtins.attrValues pkgs.nerd-fonts);
-
-  # ... other stuff
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
+  
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  wget
-  vscode
-  helix
-  ghostty
-  python3
-  neofetch
-  gnome-tweaks
-  protonvpn-gui
-  pass
-  unityhub
-  gnupg
-  (pkgs.waybar.overrideAttrs (oldAttrs: {
-    mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ];
-  }))
-  niri
-  dunst
-  libnotify
-  hyprpaper
-  swaybg
-  wpaperd
-  mpvpaper
-  swww
 
-  kitty
-
-  rofi-wayland
-  wofi
-
-  gammastep
-
-  networkmanagerapplet
-
-  grim
-  slurp
-  wl-clipboard
-  cliphist
-  overskride
-
-  hyprshot
-  pavucontrol
-  wlogout
-  yad
-  brightnessctl
-  xwayland-satellite
-
-  mpv-unwrapped
-  kdePackages.kdenlive
-  pdftk
-  libreoffice-qt6-fresh
-  playerctl
-  mpc
-  jq
-  maim
-  simple-mtpfs
-  ffmpeg
-  fusePackages.fuse_2
-  wmctrl
-  xclip
-  xorg.xeyes
-  go  
-  ];
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+  };
+  programs.nix-ld.enable = true;
+  
+  programs.hyprland = {
+    enable = true;
+  };
+
+  programs.niri.enable = true;
+
+  programs.virt-manager.enable = true;
+
+  programs.hyprlock.enable = true;
+
+  virtualisation.docker.enable = true;
+  virtualisation.podman = {
+    enable = true;
+    #dockerCompat = true;
+  };
+
+  # Manage the virtualisation services
+  virtualisation = {
+    libvirtd = {
+      enable = true;
+      qemu = {
+        package = pkgs.qemu_kvm;
+        swtpm.enable = true;  # Pour TPM si besoin
+      };
+    };
+    spiceUSBRedirection.enable = true;
+  };
+  services.spice-vdagentd.enable = true;
 
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
-  #
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -252,22 +203,19 @@
   networking.firewall = {
   allowPing = true;
   checkReversePath = false;
-
-  # Ajout d'une règle pour autoriser tout trafic sur proton0
+  
   extraCommands = ''
   iptables -A OUTPUT -o proton0 -p tcp -j ACCEPT
   iptables -A OUTPUT -o proton0 -p udp -j ACCEPT
   iptables -A INPUT -i proton0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 '';
 
-
   extraStopCommands = ''
-    iptables -D OUTPUT -o proton0 -p tcp -j ACCEPT
+  iptables -D OUTPUT -o proton0 -p tcp -j ACCEPT
     iptables -D OUTPUT -o proton0 -p udp -j ACCEPT
     iptables -D INPUT -i proton0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
   '';
-};
-
+ };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
@@ -275,6 +223,6 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "24.11"; # Did you read the comment?
+  system.stateVersion = "25.05"; # Did you read the comment?
 
 }
